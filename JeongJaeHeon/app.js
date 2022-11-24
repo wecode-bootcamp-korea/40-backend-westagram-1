@@ -33,14 +33,14 @@ app.get('/ping',(req, res, next) => {
     res.status(200).json({message : 'pong'});
 });
 
-app.post('/users/create', async (req, res, next) => {
+app.post('/users', async (req, res, next) => {
     const{ userName, userEmail, userPassword, coverImage } = req.body
 
     await myDataSource.query(
         `INSERT INTO users (
-            user_name, 
-            user_email, 
-            user_password, 
+            name, 
+            email, 
+            password, 
             cover_image
         ) VALUES (?, ?, ?, ?);
         `,
