@@ -6,7 +6,7 @@ const morgan = require ("morgan");
 const dotenv = require ("dotenv");
 dotenv.config()
 
-const {DateSource, DataSource} = require('typeorm')
+const { DataSource } = require('typeorm')
 
 const myDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
@@ -29,7 +29,25 @@ app.use(cors());
 app.use(morgan('dev'))
  
 app.get ("/ping", (req,res) => {
-    res.json({ message : "pong"});
+    res.status(200).json({ message : "pong"});
+})
+
+//create users
+
+app.post("/users", async (req,res)=>{
+  const { name, profile_image, password, email } = req.body
+  console.log(name);
+
+  await myDataSource.query(
+    `INSERT INTO users(
+      name,
+      profile_image,
+      password,
+      email
+    ) VALUES (?, ?, ?, ?);
+  `, [name, profile_image, password,email]
+  );
+  res.status(201).json({message:"userCreated"});
 })
 
 const server = http.createServer(app)
