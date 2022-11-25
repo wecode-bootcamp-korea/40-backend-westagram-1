@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,vim,webstorm,macos,linux,windows,zsh,node
-# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,vim,webstorm,macos,linux,windows,zsh,node
+# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,vim,macos,webstorm,linux,windows,zsh,node
+# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,vim,macos,webstorm,linux,windows,zsh,node
 
 ### Linux ###
 *~
@@ -397,5 +397,4 @@ zsdoc/data
 /tests/_output/*
 !/tests/_output/.gitkeep
 
-# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,vim,webstorm,macos,linux,windows,zsh,node
-
+# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,vim,macos,webstorm,linux,windows,zsh,node
