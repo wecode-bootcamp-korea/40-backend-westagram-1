@@ -1,0 +1,13 @@
+-- migrate:up
+CREATE TABLE posts (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, 
+  title VARCHAR(100) NOT NULL,
+  posting_content VARCHAR(3000) NOT NULL,
+  posting_image VARCHAR(1000) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- migrate:down
+DROP TABLE posts;
+
