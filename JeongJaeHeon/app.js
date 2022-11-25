@@ -8,7 +8,7 @@ const { DataSource } = require('typeorm')
 
 const app = express();
 
-const myDataSource = new DataSource({
+const mysqlDataSource = new DataSource({
     type: process.env.TYPEORM_CONNECTION,
     host: process.env.TYPEORM_HOST,
     port: process.env.TYPEORM_PORT,
@@ -17,7 +17,7 @@ const myDataSource = new DataSource({
     database: process.env.TYPEORM_DATABASE,
 })
 
-myDataSource.initialize()
+mysqlDataSource.initialize()
     .then(() => {
         console.log("Data Source has been initialized")
     })
@@ -36,7 +36,7 @@ app.get('/ping',(req, res, next) => {
 app.post('/users', async (req, res, next) => {
     const{ userName, userEmail, userPassword, coverImage } = req.body
 
-    await myDataSource.query(
+    await mysqlDataSource.query(
         `INSERT INTO users (
             name, 
             email, 
