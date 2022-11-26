@@ -1,5 +1,6 @@
 const http = require('http');
 
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -8,7 +9,6 @@ const morgan = require('morgan');
 const { DataSource } = require('typeorm')
 
 const app = express();
-
 
 const myDataSource = new DataSource({
     type: process.env.TYPEORM_CONNECTION,
@@ -19,26 +19,81 @@ const myDataSource = new DataSource({
     database: process.env.TYPEORM_DATABASE,
 })
 
-myDataSource.initialize()
+mysqlDataSource.initialize()
     .then(() => {
+        
         console.log("Data Source has been initialized")
+    
     })
     .catch(() => {
-        console.log("Data Source has not been initialized")
+        
+        console.log("Failed to DataSource initialized")
+    
     })
 
 app.use(express.json());
 app.use(cors());
-app.use(morgan('combined'));
+app.use(morgan('dev'));
 
 app.get('/ping',(req, res, next) => {
-    res.status(201).json({message : 'pong'});
+    res.status(200).json({message : 'pong'});
 });
 
-app.post('/users/create', async (req, res, next) => {
+app.get('/users/posts', async(req, res) => {
+    await mysqlDataSource.query(
+        `SELECT 
+            u.id AS userId,
+            u.profileImage AS userProfileImage,
+            p.id AS postingId,
+            p.ImageUrl AS postingImageUrl,
+            p.content AS postingContent
+          FROM users u, posts p
+        `, (err, rows) => {
+            res.status(200).json(rows);
+    })
+})
+
+app.get('/posts/users', async(req, res) => {
+    const { userId } = req.body
+
+    await mysqlDataSource.query(
+        `SELECT 
+          u.id AS userId, 
+          u.profileImage AS userProfileImage,
+          p.id AS postings,
+          p.ImageUrl AS postingImageUrl,
+          p.content AS postingContent 
+        FROM users u
+        LEFT JOIN posts p 
+        ON p.user_id = ${userId};`
+        ,(err, rows) => {
+            res.status(200).json(rows);
+        })
+})
+
+app.get('/posts/lists', async(req, res) => {
+    const { userId } = req.body
+    
+    await mysqlDataSource.query(
+        `SELECT
+          u.id AS userId,
+          u.name AS userName,
+          p.id AS postingId,
+          p.title AS postingTitle,
+          p.content AS postingContent
+        FROM users u
+        LEFT JOIN posts p
+        ON p.id = ${userId};`
+        , (err, rows) => {
+            res.status(200).json(rows)
+        }
+    )
+})
+
+app.post('/users', async (req, res) => {
     const { userName, userEmail, userPassword, userImage } = req.body
 
-    await myDataSource.query(
+    await mysqlDataSource.query(
         `INSERT INTO users (
             name,
             email,
@@ -52,15 +107,16 @@ app.post('/users/create', async (req, res, next) => {
 })
 
 app.post('/posts', async(req, res, next) => {
-    const { title, content } = req.body
+    const { title, content, userId } = req.body
 
-    await myDataSource.query(
-    `INSERT INTO posts (
-        title,
-        content
-      ) VALUES (?, ?);
-    `
-    [ title, content ]
+    await mysqlDataSource.query(
+        `INSERT INTO posts (
+          title,
+          content,
+          user_id
+        ) VALUES (?, ?, ?);
+        `,
+        [ title, content, userId ]
     )
     res.status(201).json({message : 'postCreated'})
 })
