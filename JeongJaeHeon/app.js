@@ -10,7 +10,7 @@ const { DataSource } = require('typeorm')
 
 const app = express();
 
-const myDataSource = new DataSource({
+const mysqlDataSource = new DataSource({
     type: process.env.TYPEORM_CONNECTION,
     host: process.env.TYPEORM_HOST,
     port: process.env.TYPEORM_PORT,
@@ -39,15 +39,18 @@ app.get('/ping',(req, res, next) => {
     res.status(200).json({message : 'pong'});
 });
 
-app.get('/users/posts', async(req, res) => {
+app.get('/users/:userId', async(req, res) => {
+    const { userId } = req.params;
+
     await mysqlDataSource.query(
         `SELECT 
             u.id AS userId,
-            u.profileImage AS userProfileImage,
+            u.profile_image AS userProfileImage,
             p.id AS postingId,
             p.ImageUrl AS postingImageUrl,
             p.content AS postingContent
           FROM users u, posts p
+          WHERE p.user_id = ${userId}
         `, (err, rows) => {
             res.status(200).json(rows);
     })
@@ -59,7 +62,7 @@ app.get('/posts/users', async(req, res) => {
     await mysqlDataSource.query(
         `SELECT 
           u.id AS userId, 
-          u.profileImage AS userProfileImage,
+          u.profile_image AS userProfileImage,
           p.id AS postings,
           p.ImageUrl AS postingImageUrl,
           p.content AS postingContent 
@@ -78,12 +81,12 @@ app.get('/posts/lists', async(req, res) => {
         `SELECT
           u.id AS userId,
           u.name AS userName,
-          p.id AS postingId,
+          p.user_id AS postingId,
           p.title AS postingTitle,
           p.content AS postingContent
         FROM users u
         LEFT JOIN posts p
-        ON p.id = ${userId};`
+        ON p.user_id = ${userId};`
         , (err, rows) => {
             res.status(200).json(rows)
         }
@@ -98,7 +101,7 @@ app.post('/users', async (req, res) => {
             name,
             email,
             password,
-            image
+            profile_image
           ) VALUES (?, ?, ?, ?);
         `,
         [ userName, userEmail, userPassword, userImage ]
@@ -106,17 +109,18 @@ app.post('/users', async (req, res) => {
     res.status(201).json({message: 'userCreated'})
 })
 
-app.post('/posts', async(req, res, next) => {
-    const { title, content, userId } = req.body
+app.post('/posts/', async(req, res, next) => {
+    const { title, content, imageUrl, userId } = req.body
 
     await mysqlDataSource.query(
         `INSERT INTO posts (
           title,
           content,
+          imageurl,
           user_id
-        ) VALUES (?, ?, ?);
+        ) VALUES (?, ?, ?, ?);
         `,
-        [ title, content, userId ]
+        [ title, content, imageUrl, userId ]
     )
     res.status(201).json({message : 'postCreated'})
 })
@@ -124,7 +128,6 @@ app.post('/posts', async(req, res, next) => {
 const PORT = process.env.PORT;
 
 const start = async() => {
-    app.listen(PORT, () => console.log(`Server is listening to ${PORT}`));
     app.listen(PORT, () => console.log(`Server is listening to ${PORT}`));
 }
 
