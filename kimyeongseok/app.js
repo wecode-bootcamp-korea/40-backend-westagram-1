@@ -8,7 +8,7 @@ dotenv.config()
 
 const { DataSource } = require('typeorm')
 
-const myDataSource = new DataSource({
+const mysqlDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
   host: process.env.TYPEORM_HOST,
   port: process.env.TYPEORM_PORT,
@@ -17,7 +17,7 @@ const myDataSource = new DataSource({
   database: process.env.TYPEORM_DATABASE  
 })
 
-myDataSource.initialize()
+mysqlDataSource.initialize()
  .then(() => {
     console.log("Data Source has been initialized")
  })
@@ -32,13 +32,11 @@ app.get ("/ping", (req,res) => {
     res.status(200).json({ message : "pong"});
 })
 
-//create users
 
 app.post("/users", async (req,res)=>{
   const { name, profile_image, password, email } = req.body
-  console.log(name);
 
-  await myDataSource.query(
+  await mysqlDataSource.query(
     `INSERT INTO users(
       name,
       profile_image,
