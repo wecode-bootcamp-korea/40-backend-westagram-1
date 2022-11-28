@@ -1,13 +1,8 @@
-//Built-in package
-// --
-//3rd-party package
 const dotenv = require("dotenv");
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const { DataSource } = require("typeorm");
-// custom package
-// --
 
 dotenv.config();
 
