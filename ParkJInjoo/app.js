@@ -25,10 +25,6 @@ database.initialize().then(() => {
   console.log("Data Source has been initialized!");
 });
 
-app.get("/ping", (req, res) => {
-  res.json({ message: "pong!" });
-});
-
 app.post("/users", async (req, res) => {
   const { name, email, profile_image, password } = req.body;
 
@@ -46,30 +42,91 @@ app.post("/users", async (req, res) => {
 });
 
 app.post("/posts", async (req, res) => {
-  const { title, posting_content, posting_image } = req.body;
+  const { title, posting_content, posting_image, user_id } = req.body;
 
   await database.query(
     `INSERT INTO posts(
       title,
       posting_content,
-      posting_image
-    ) VALUES (?,?,?);
+      posting_image,
+      user_id
+    ) VALUES (?,?,?,?);
     `,
-    [title, posting_content, posting_image]
+    [title, posting_content, posting_image, user_id]
   );
   res.status(201).json({ message: "postCreated" });
+});
+
+app.get("/posts", async (req, res) => {
+  await database.query(
+    `SELECT
+        p.id,
+        p.posting_content,
+        p.posting_image,
+        p.user_id
+    FROM posts p`,
+    (err, rows) => {
+      res.status(200).json(rows);
+    }
+  );
+});
+
+app.get("/posts/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  await database.query(
+    `SELECT
+        p.id,
+        p.title,
+        p.posting_content,
+        p.posting_image,
+        p.user_id
+    FROM posts p 
+    WHERE p.user_id = ${userId}
+    `,
+    (err, rows) => {
+      res.status(200).json(rows);
+    }
+  );
+});
+
+app.patch("/posts", async (req, res) => {
+  const { title, posting_content, posting_image, postId } = req.body;
+
+  await database.query(
+    `UPDATE posts 
+    SET
+      title = ?,
+      posting_content = ?,
+      posting_image = ?
+    WHERE id = ? 
+     `,
+    [title, posting_content, posting_image, postId]
+  );
+  res.status(201).json({ message: "successfully updated" });
+});
+
+app.delete("/posts/:postId", async (req, res) => {
+  const { postId } = req.params;
+
+  await database.manager.query(
+    `DELETE FROM posts
+    WHERE posts.id = ${postId}
+    `
+  );
+  res.status(200).json({ message: "postingDeleted" });
 });
 
 app.post("/likes", async (req, res) => {
   const { user_id, post_id } = req.body;
 
   await database.query(
-    `INSERT INTO likes(
+    `INSERT INTO likes (
       user_id,
       post_id
-    )VALUE (?,?);
+    ) VALUES (?,?);
     `,
-    [use_id, post_id]
+    [user_id, post_id]
   );
   res.status(201).json({ message: "likeCreated" });
 });
@@ -80,34 +137,5 @@ const PORT = process.env.PORT;
 const start = async () => {
   server.listen(PORT, () => console.log(`server is listening on ${PORT}`));
 };
-
-app.post("/likes", async (req, res) => {
-  const { user_id, post_id } = req.body;
-
-  await database.query(
-    `INSERT INTO likes(
-      user_id,
-      post_id
-    )VAULES (?, ?, ?);
-    `,
-    [user_id, post_id]
-  );
-  res.status(201).json({ message: "likeCreated" });
-});
-
-app.get("/posts", async (req, res) => {
-  const { title, content, user_id } = req.body;
-
-  await database.query(
-    `SELECT (
-      title,
-      content,
-      user_id,
-      post_id
-    )`,
-    [title, content, user_id]
-  );
-  res.status(200)({ message: "posts" });
-});
 
 start();

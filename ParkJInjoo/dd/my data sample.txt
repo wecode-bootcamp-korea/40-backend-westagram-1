@@ -1,0 +1,14 @@
+
+
+
+
+
+//mysql 에서 데이터 추가하기 
+//INSERT VALUE 
+
+
+//http 통신으로 데이터 추가하기 
+
+
+http -v POST 127.0.0.1:3000/users id=1 name="testname_1" email="test@email_1" profile_image="testimage_1.url" password="testpassword_1"
+http -v POST 127.0.0.1:3000/posts id=1 title="test_title_1" posting_content="test_posting_content_1" posting_image="test_posting_image" user_id=1

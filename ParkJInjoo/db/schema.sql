@@ -38,9 +38,10 @@ CREATE TABLE `posts` (
   `title` varchar(100) NOT NULL,
   `posting_content` varchar(3000) NOT NULL,
   `posting_image` varchar(1000) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  `user_id` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `posts_user_id_fkey` (`user_id`),
+  CONSTRAINT `posts_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -95,7 +96,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `schema_migrations` WRITE;
 INSERT INTO `schema_migrations` (version) VALUES
-  ('20221124055432'),
-  ('20221125023153'),
-  ('20221125023202');
+  ('20221125081336'),
+  ('20221125081352'),
+  ('20221125081357');
 UNLOCK TABLES;
