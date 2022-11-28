@@ -27,7 +27,7 @@ mysqlDataSource.initialize()
     })
     .catch(() => {
         
-        console.log("Failed to DataSource initialized")
+        console.log("Failed to initialize Data source")
     
     })
 
@@ -46,32 +46,14 @@ app.get('/users/:userId', async(req, res) => {
         `SELECT 
             u.id AS userId,
             u.profile_image AS userProfileImage,
-            p.id AS postingId,
-            p.ImageUrl AS postingImageUrl,
+            p.user_id AS postingId,
+            p.imageurl AS postingImageUrl,
             p.content AS postingContent
           FROM users u, posts p
           WHERE p.user_id = ${userId}
         `, (err, rows) => {
             res.status(200).json(rows);
     })
-})
-
-app.get('/posts/users', async(req, res) => {
-    const { userId } = req.body
-
-    await mysqlDataSource.query(
-        `SELECT 
-          u.id AS userId, 
-          u.profile_image AS userProfileImage,
-          p.id AS postings,
-          p.ImageUrl AS postingImageUrl,
-          p.content AS postingContent 
-        FROM users u
-        LEFT JOIN posts p 
-        ON p.user_id = ${userId};`
-        ,(err, rows) => {
-            res.status(200).json(rows);
-        })
 })
 
 app.get('/posts/lists', async(req, res) => {
@@ -91,6 +73,16 @@ app.get('/posts/lists', async(req, res) => {
             res.status(200).json(rows)
         }
     )
+})
+
+app.get('/users/likes', async(req, res) => {
+    const { userId, postId } = req.body
+
+    await mysqlDataSource.query(
+        `UPDATE likes
+          SET user_id=${userId}, post_id=${postId}`
+    )
+    res.status(200).json({message : "likes Created"})
 })
 
 app.post('/users', async (req, res) => {
@@ -120,9 +112,44 @@ app.post('/posts/', async(req, res, next) => {
           user_id
         ) VALUES (?, ?, ?, ?);
         `,
-        [ title, content, imageUrl, userId ]
-    )
+        [ title, content, imageUrl, userId ]);
+
     res.status(201).json({message : 'postCreated'})
+})
+
+app.patch('/posts', async(req, res) => {
+    const { userId, title, content } = req.body
+    
+    await mysqlDataSource.query(
+        `UPDATE users u, posts p
+          SET u.name="wecode", p.title=${title}, p.content=${content}
+        WHERE u.id=${userId} || p.user_id=${userId}
+        `,
+        [ userId, title, content ]);
+
+    await mysqlDataSource.query(
+        `SELECT
+            u.id AS userId,
+            u.profileimage AS userProfileImage,
+            p.user_id AS postingId,
+            p.title As postingTitle,
+            p.content AS postingContent
+          FROM users u, posts p
+          WHERE p.user_id=${userId};
+        `,
+        (err, rows) => {
+        res.status(201).json({message : rows})
+        })    
+})
+
+app.delete('/posts', async(req, res) => {
+    const { postId } = req.body
+
+    await mysqlDataSource.query(
+        `DELETE FROM posts p
+        WHERE p.id=${postId}`
+    )
+    res.status(204).json({message : 'posting Deleted'})
 })
 
 const PORT = process.env.PORT;
