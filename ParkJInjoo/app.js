@@ -32,7 +32,7 @@ app.get("/ping", (req, res) => {
 app.post("/users", async (req, res) => {
   const { name, email, profile_image, password } = req.body;
 
-  await myDataSource.query(
+  await database.query(
     `INSERT INTO users(
       name,
       email,
