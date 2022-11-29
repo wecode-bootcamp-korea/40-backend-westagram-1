@@ -39,7 +39,7 @@ app.post("/users", async (req, res)=>{
       profile_image,
       password,
       email
-    ) VALUES (?, ?, ?, ?);`, 
+    )VALUES (?, ?, ?, ?);`, 
     [name, profileImage, password, email]
   );
   res.status(200).json({message:"userCreated"});
@@ -70,13 +70,13 @@ app.get("/posts", async (req, res)=>{
       p.content as PostingContent
     FROM posts p
     JOIN users u ON p.user_id = u.id`
-      ,(err,rows) => {
-      res.status(200).json(rows);
+     ,(err,rows) => {
+    res.status(200).json(rows);
     }
   )
 });
 
-app.get("/usersPost/:userId", async (req,res)=>{
+app.get("/posts/:userId", async (req,res)=>{
   const userId = req.params.userId;
   const userPost =  await mysqlDataSource.query(
     `SELECT
@@ -95,33 +95,35 @@ app.get("/usersPost/:userId", async (req,res)=>{
        [userId]);
         res.status(200).json(userPost)
 })
-app.patch("/updateInfo/:postId", async (req,res)=>{
+
+app.patch("/posts/:postId", async (req,res)=>{
   const postId = req.params.postId;
   const { title, content, imageUrl} = req.body
- await mysqlDataSource.query(
-  `UPDATE
-    posts
-   SET
-    title = ?,
-    content = ?,
-    image_url = ?
-    WHERE id = ?`,
-   [ title, content, imageUrl,postId]);
- const post =await mysqlDataSource.query(
-  `SELECT
-    u.id as userId,
-    u.name as UserName,
-    p.id as postingId,
-    p.title as postingTitle,
-    p.content as postingContent
-  FROM posts p 
-  INNER JOIN users u ON u.id =p.user_id 
-  WHERE p.user_id =?` 
-    ,[postId]);
- res.status(200).json({data: post[0]});
+  await mysqlDataSource.query(
+    `UPDATE
+      posts
+    SET
+      title = ?,
+      content = ?,
+      image_url = ?
+      WHERE id = ?`,
+   [ title, content, imageUrl, postId]);
+  
+   const post =await mysqlDataSource.query(
+    `SELECT
+      u.id as userId,
+      u.name as UserName,
+      p.id as postingId,
+      p.title as postingTitle,
+      p.content as postingContent
+    FROM posts p 
+    INNER JOIN users u ON u.id =p.user_id 
+    WHERE p.user_id =?` 
+      ,[postId]);
+  res.status(200).json({data: post[0]});
 });
 
-app.delete("/deletePost/:postId", async(req, res)=>{
+app.delete("/posts/:postId", async(req, res)=>{
   const postId = req.params.postId;
   await mysqlDataSource.query(
     `DELETE FROM posts
