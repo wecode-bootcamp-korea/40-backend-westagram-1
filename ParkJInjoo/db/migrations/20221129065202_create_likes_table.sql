@@ -10,4 +10,3 @@ CREATE TABLE likes (
 
 -- migrate:down
 DROP table likes;
-
