@@ -77,7 +77,7 @@ app.get("/posts", async (req,res)=>{
 
 app.get("/usersPost/:userId", async (req,res)=>{
   const userId = req.params.userId;
-  await mysqlDataSource.query(
+  const userPost =  await mysqlDataSource.query(
     `SELECT
       u.id as userId,
       u.profile_image as userProfileImage,
@@ -89,12 +89,10 @@ app.get("/usersPost/:userId", async (req,res)=>{
          )
         ) as posting
       FROM posts p
-      INNER JOIN users u ON u.id=${userId}
-      GROUP BY u.id`
-      ,(err,rows) => {
-      res.status(200).json(rows)
-    }
-  )
+      INNER JOIN users u ON u.id= ?
+      GROUP BY u.id`,
+       [userId]);
+        res.status(200).json(userPost)
 })
 app.patch("/updateInfo/:postId", async (req,res)=>{
   const postId = req.params.postId;
@@ -105,8 +103,8 @@ app.patch("/updateInfo/:postId", async (req,res)=>{
    title = ?,
    content = ?,
    image_url = ?
-   WHERE id = ${postId}`,
-   [ title, content, imageUrl]);
+   WHERE id = ?`,
+   [ title, content, imageUrl,postId]);
  const post =await mysqlDataSource.query(
   `SELECT
     u.id as userId,
@@ -116,8 +114,8 @@ app.patch("/updateInfo/:postId", async (req,res)=>{
     p.content as postingContent
     FROM posts p 
     INNER JOIN users u ON u.id =p.user_id 
-    WHERE p.id LIKE ${postId}` 
-    );
+    WHERE p.user_id =?` 
+    ,[postId]);
  res.status(200).json({data: post[0]});
 });
 
@@ -125,8 +123,8 @@ app.delete("/deletePost/:postId", async(req,res)=>{
   const postId = req.params.postId;
   await mysqlDataSource.query(
     `DELETE FROM posts
-      WHERE posts.id = ${postId}`
-     );
+      WHERE posts.id = ?`
+     ,[postId]);
     res.status(200).json({message:"postingDeleted"});
 });
 
