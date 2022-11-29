@@ -71,7 +71,7 @@ app.get('/posts', async(req, res) => {
         res.status(200).json(posts)
     })
     
-app.post('/users/likes', async(req, res) => {
+app.post('/likes', async(req, res) => {
     const { userId, postId } = req.body
 
     await mysqlDataSource.query(
