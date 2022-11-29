@@ -39,49 +39,47 @@ app.get('/ping',(req, res, next) => {
     res.status(200).json({message : 'pong'});
 });
 
-app.get('/users/:userId', async(req, res) => {
+app.get('/posts/:userId', async(req, res) => {
     const { userId } = req.params;
 
-    await mysqlDataSource.query(
+    const posts = await mysqlDataSource.query(
         `SELECT 
             u.id AS userId,
             u.profile_image AS userProfileImage,
-            p.user_id AS postingId,
-            p.imageurl AS postingImageUrl,
+            p.id AS postingId,
+            p.image_url AS postingImageUrl,
             p.content AS postingContent
-          FROM users u, posts p
-          WHERE p.user_id = ${userId}
-        `, (err, rows) => {
-            res.status(200).json(rows);
+          FROM posts p
+          JOIN users u ON p.user_id = u.id
+          WHERE p.user_id = ?
+        `, [ userId ])
+        res.status(200).json(posts);
     })
-})
 
-app.get('/posts/lists', async(req, res) => {
-    const { userId } = req.body
-    
-    await mysqlDataSource.query(
+app.get('/posts', async(req, res) => {
+
+    const posts = await mysqlDataSource.query(
         `SELECT
           u.id AS userId,
           u.name AS userName,
-          p.user_id AS postingId,
+          p.id AS postingId,
           p.title AS postingTitle,
           p.content AS postingContent
-        FROM users u
-        LEFT JOIN posts p
-        ON p.user_id = ${userId};`
-        , (err, rows) => {
-            res.status(200).json(rows)
-        }
-    )
-})
-
-app.get('/users/likes', async(req, res) => {
+        FROM posts p
+        JOIN uses u ON p.user_id = u.id;
+        `) 
+        res.status(200).json(posts)
+    })
+    
+app.post('/users/likes', async(req, res) => {
     const { userId, postId } = req.body
 
     await mysqlDataSource.query(
         `UPDATE likes
-          SET user_id=${userId}, post_id=${postId}`
-    )
+          SET 
+            user_id = ?, 
+            post_id = ? 
+          `, [ userId, postId ])
     res.status(200).json({message : "likes Created"})
 })
 
@@ -101,7 +99,7 @@ app.post('/users', async (req, res) => {
     res.status(201).json({message: 'userCreated'})
 })
 
-app.post('/posts/', async(req, res, next) => {
+app.post('/posts', async(req, res, next) => {
     const { title, content, imageUrl, userId } = req.body
 
     await mysqlDataSource.query(
@@ -117,37 +115,39 @@ app.post('/posts/', async(req, res, next) => {
     res.status(201).json({message : 'postCreated'})
 })
 
-app.patch('/posts', async(req, res) => {
+app.patch('/posts/:postId', async(req, res) => {
+    const { postId } = req.params
     const { userId, title, content } = req.body
     
     await mysqlDataSource.query(
-        `UPDATE users u, posts p
-          SET u.name="wecode", p.title=${title}, p.content=${content}
-        WHERE u.id=${userId} || p.user_id=${userId}
-        `,
-        [ userId, title, content ]);
+        `UPDATE 
+            posts p
+          SET  
+            p.title= ?, p.content= ?
+        WHERE p.id =?
+        ` [ title, content, postId ]);
 
-    await mysqlDataSource.query(
+    const post = await mysqlDataSource.query(
         `SELECT
             u.id AS userId,
             u.profileimage AS userProfileImage,
-            p.user_id AS postingId,
+            p.id AS postingId,
             p.title As postingTitle,
             p.content AS postingContent
-          FROM users u, posts p
-          WHERE p.user_id=${userId};
-        `,
-        (err, rows) => {
-        res.status(201).json({message : rows})
-        })    
+          FROM posts p
+          JOIN users u ON p.user_id = u.id
+          WHERE p.user_id= ?;
+        `, [ userId ])
+        res.status(200).json({post})   
 })
 
-app.delete('/posts', async(req, res) => {
-    const { postId } = req.body
+app.delete('/posts/:postId', async(req, res) => {
+    const { postId } = req.params
 
     await mysqlDataSource.query(
         `DELETE FROM posts p
-        WHERE p.id=${postId}`
+        WHERE p.id = ?
+        `, [ postId ]
     )
     res.status(204).json({message : 'posting Deleted'})
 })
