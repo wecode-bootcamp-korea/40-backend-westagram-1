@@ -25,12 +25,13 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan('dev'))
  
-app.get ("/ping", (req,res) => {
+app.get("/ping", (req, res) => {
     res.status(200).json({ message : "pong"});
 })
 
-app.post("/users", async (req,res)=>{
-  const { name, profileImage , password, email } = req.body
+
+app.post("/users", async (req, res)=>{
+  const { name, profileImage, password, email } = req.body
 
   await mysqlDataSource.query(
     `INSERT INTO users(
@@ -44,7 +45,7 @@ app.post("/users", async (req,res)=>{
   res.status(200).json({message:"userCreated"});
 });
 
-app.post("/posts", async (req,res)=>{
+app.post("/posts", async (req, res)=>{
   const { title, userId, content, imageUrl } = req.body
 
   await mysqlDataSource.query(
@@ -59,7 +60,7 @@ app.post("/posts", async (req,res)=>{
   res.status(200).json({message:"postCreated"})
 });
 
-app.get("/posts", async (req,res)=>{
+app.get("/posts", async (req, res)=>{
   await mysqlDataSource.query(
     `SELECT
       u.id as userId,
@@ -67,8 +68,8 @@ app.get("/posts", async (req,res)=>{
       p.id as PostingId,
       p.image_url as PostingImageUrl,
       p.content as PostingContent
-      FROM posts p
-      JOIN users u ON p.user_id = u.id`
+    FROM posts p
+    JOIN users u ON p.user_id = u.id`
       ,(err,rows) => {
       res.status(200).json(rows);
     }
@@ -88,9 +89,9 @@ app.get("/usersPost/:userId", async (req,res)=>{
         "postingImageurl",p.image_url
          )
         ) as posting
-      FROM posts p
-      INNER JOIN users u ON u.id= ?
-      GROUP BY u.id`,
+    FROM posts p
+    INNER JOIN users u ON u.id= ?
+    GROUP BY u.id`,
        [userId]);
         res.status(200).json(userPost)
 })
@@ -98,12 +99,13 @@ app.patch("/updateInfo/:postId", async (req,res)=>{
   const postId = req.params.postId;
   const { title, content, imageUrl} = req.body
  await mysqlDataSource.query(
-  `UPDATE posts
+  `UPDATE
+    posts
    SET
-   title = ?,
-   content = ?,
-   image_url = ?
-   WHERE id = ?`,
+    title = ?,
+    content = ?,
+    image_url = ?
+    WHERE id = ?`,
    [ title, content, imageUrl,postId]);
  const post =await mysqlDataSource.query(
   `SELECT
@@ -112,14 +114,14 @@ app.patch("/updateInfo/:postId", async (req,res)=>{
     p.id as postingId,
     p.title as postingTitle,
     p.content as postingContent
-    FROM posts p 
-    INNER JOIN users u ON u.id =p.user_id 
-    WHERE p.user_id =?` 
+  FROM posts p 
+  INNER JOIN users u ON u.id =p.user_id 
+  WHERE p.user_id =?` 
     ,[postId]);
  res.status(200).json({data: post[0]});
 });
 
-app.delete("/deletePost/:postId", async(req,res)=>{
+app.delete("/deletePost/:postId", async(req, res)=>{
   const postId = req.params.postId;
   await mysqlDataSource.query(
     `DELETE FROM posts
@@ -128,13 +130,14 @@ app.delete("/deletePost/:postId", async(req,res)=>{
     res.status(200).json({message:"postingDeleted"});
 });
 
-app.post("/likes",async (req,res)=>{
+app.post("/likes",async (req, res)=>{
  const { userId , postId} = req.body
   await mysqlDataSource.query (
-    `INSERT INTO likes(
-    post_id,
-    user_id
-    ) 
+    `INSERT INTO
+      likes(
+        post_id,
+        user_id
+      ) 
     VALUE (?,?);` , 
      [ userId, postId]
   );
