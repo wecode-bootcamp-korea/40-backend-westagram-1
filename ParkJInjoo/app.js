@@ -29,6 +29,22 @@ app.get("/ping", (req, res) => {
   res.json({ message: "pong!" });
 });
 
+app.post("/users", async (req, res) => {
+  const { name, email, profile_image, password } = req.body;
+
+  await database.query(
+    `INSERT INTO users(
+      name,
+      email,
+      profile_image,
+      password
+    ) VALUES (?, ?, ?, ?);
+    `,
+    [name, email, profile_image, password]
+  );
+  res.status(201).json({ message: "userCreated" });
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
