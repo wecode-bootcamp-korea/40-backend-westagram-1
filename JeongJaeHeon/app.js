@@ -7,6 +7,8 @@ const morgan = require('morgan');
 const { DataSource } = require('typeorm')
 
 const app = express();
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const mysqlDataSource = new DataSource({
     type: process.env.TYPEORM_CONNECTION,
@@ -35,6 +37,9 @@ app.get('/ping',(req, res, next) => {
 
 app.post('/users', async (req, res, next) => {
     const{ userName, userEmail, userPassword, profileImage } = req.body
+    
+    const SALT_ROUNDS=10;
+    const hashedPassword = await bcrypt.hash(userPassword, SALT_ROUNDS)
 
     await mysqlDataSource.query(
         `INSERT INTO users (
@@ -44,7 +49,7 @@ app.post('/users', async (req, res, next) => {
             profile_image
         ) VALUES (?, ?, ?, ?);
         `,
-          [userName, userEmail, userPassword, profileImage]
+          [userName, userEmail, hashedPassword, profileImage]
     ) 
     res.status(201).json({ message : "userCreated"})
 });
