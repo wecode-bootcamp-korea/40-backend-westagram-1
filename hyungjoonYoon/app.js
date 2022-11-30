@@ -143,6 +143,17 @@ app.delete("/deletePost/:postingId", async (req, res) => {
   res.status(201).json({ message: "postingDeleted" });
 });
 
+app.post("/likeAPost", async (req, res) => {
+  const { postingId, userId } = req.body;
+  await appDataSource.manager.query(
+    `INSERT INTO likes (user_id, post_id)
+    VALUES (?,?);
+    `,
+    [userId, postingId]
+  );
+  res.status(201).json({ message: "likeCreated" });
+});
+
 const start = async () => {
   try {
     app.listen(PORT, () => console.log(`server is listening on ${PORT}`));
