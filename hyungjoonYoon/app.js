@@ -54,7 +54,6 @@ app.post("/signUp", async (req, res) => {
 
 app.post("/post", async (req, res) => {
   const { title, content, user_id } = req.body;
-
   await appDataSource.query(
     `INSERT INTO posts(
       title,
@@ -83,6 +82,28 @@ app.get("/lookUpPosts", async (req, res) => {
       res.status(200).json({ data: rows });
     }
   );
+});
+
+app.get("/lookUpPostsByUser/:inputId", async (req, res) => {
+  const userId = req.params.inputId;
+  const user = await appDataSource.manager.query(
+    `SELECT 
+        id AS userId,
+        profile_image AS userProfileImage
+    FROM users
+    WHERE users.id = ${userId};`
+  );
+  const userpost = await appDataSource.manager.query(
+    `SELECT
+          id as postingId,
+          title as postingImageUrl,
+          content as postingContent
+      FROM posts
+      WHERE user_id = ${userId};`
+  );
+  user[0].postings = userpost;
+  res.status(200).json({ data: user[0] });
+  // res.status(200).json({ data: user });
 });
 
 const start = async () => {
