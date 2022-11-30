@@ -76,6 +76,33 @@ app.get('/login', async(req, res) => {
             }
 })
 
+const validateToken = async(req, res) => {
+    const token = req.headers.authorization
+    const decoded = jwt.verify(token, process.env.JWT_TOKEN_SECRET_KEY)
+    if(!true) {
+        req.user = decoded
+        next()
+    } else {
+        res.status(404).json({ message : "Invalid Access Token" })
+    }
+}
+
+app.post('/posts', validateToken, async(req, res) => {
+    const { userId } =req.user
+    const { title, content, image_url } = req.body
+    
+    const posts = 
+        await mysqlDataSource.query(
+            `INSERT INTO posts (
+                title,
+                content,
+                image_url
+              ) VALUES (?, ?, ?)
+            `, [ title, content, image_url ]    
+        )
+    res.status(201).json({ message : "postCreated" })
+})
+
 const PORT = process.env.PORT;
 
 const start = async() => {
