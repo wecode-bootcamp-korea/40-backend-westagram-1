@@ -37,7 +37,7 @@ app.get('/ping',(req, res, next) => {
 
 app.post('/users', async (req, res, next) => {
     const{ userName, userEmail, userPassword, profileImage } = req.body
-    
+
     const SALT_ROUNDS=10;
     const hashedPassword = await bcrypt.hash(userPassword, SALT_ROUNDS)
 
@@ -53,6 +53,28 @@ app.post('/users', async (req, res, next) => {
     ) 
     res.status(201).json({ message : "userCreated"})
 });
+
+app.get('/login', async(req, res) => {
+    const { userId, userPassword} = req.body
+
+    const hashedPassword = 
+        await mysqlDataSource.query(
+            `SELECT u.password
+                FROM users u WHERE u.id=?`, [userId]
+        )
+    const hash = hashedPassword[0].password
+
+    const match = await bcrypt.compare(userPassword, hash)
+            if(match === true) {
+                const payLoad = { userId : userId }
+                const secretKey = process.env.JWT_TOKEN_SECRET_KEY
+                const jwtToken = jwt.sign(payLoad, secretKey, {algorithm:"HS256", expiresIn:"7d"})
+
+                res.status(200).json({ accsessToken : jwtToken })
+            } else {
+                res.status(401).json({ message : "Invalid User" })
+            }
+})
 
 const PORT = process.env.PORT;
 
