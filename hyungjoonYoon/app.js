@@ -103,7 +103,36 @@ app.get("/lookUpPostsByUser/:inputId", async (req, res) => {
   );
   user[0].postings = userpost;
   res.status(200).json({ data: user[0] });
-  // res.status(200).json({ data: user });
+});
+
+app.patch("/updatePost/:user_id&:posting_id", async (req, res) => {
+  const user_id = Number(req.params.user_id);
+  const posting_id = Number(req.params.posting_id);
+
+  const { content } = req.body;
+
+  await appDataSource.query(
+    `UPDATE posts
+		 SET 
+		 content = ?
+		 WHERE id = ?;
+		`,
+    [content, posting_id]
+  );
+
+  const updated = await appDataSource.manager.query(
+    `SELECT 
+        u.id AS userId,
+        u.name AS userName, 
+        p.id AS postingId, 
+        p.title AS postingTitle, 
+        p.content AS postingContent
+    FROM posts AS p
+    INNER JOIN users AS u
+    ON u.id = p.user_id
+    WHERE u.id = ${user_id} AND p.id = ${posting_id};`
+  );
+  res.status(201).json({ data: updated[0] });
 });
 
 const start = async () => {
