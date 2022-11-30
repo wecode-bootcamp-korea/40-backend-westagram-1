@@ -6,6 +6,9 @@ const morgan = require ("morgan");
 const dotenv = require ("dotenv");
 dotenv.config()
 
+const bcrypt =require("bcrypt");
+const saltRound = 12;
+
 const { DataSource } = require('typeorm')
 
 const mysqlDataSource = new DataSource({
@@ -35,7 +38,7 @@ app.get ("/ping", (req,res) => {
 
 app.post("/users", async (req,res)=>{
   const { name, profile_image, password, email } = req.body
-
+  const encrytedPassword = await bcrypt.hash( password, saltRound)
   await mysqlDataSource.query(
     `INSERT INTO users(
       name,
@@ -43,7 +46,7 @@ app.post("/users", async (req,res)=>{
       password,
       email
     ) VALUES (?, ?, ?, ?);
-  `, [name, profile_image, password,email]
+  `, [name, profile_image, encrytedPassword ,email]
   );
   res.status(201).json({message:"userCreated"});
 })
