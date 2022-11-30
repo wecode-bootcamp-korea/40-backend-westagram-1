@@ -105,7 +105,7 @@ app.get("/lookUpPostsByUser/:inputId", async (req, res) => {
   res.status(200).json({ data: user[0] });
 });
 
-app.patch("/updatePost/:user_id&:posting_id", async (req, res) => {
+app.patch("/updatePost/:user_id/:posting_id", async (req, res) => {
   const user_id = Number(req.params.user_id);
   const posting_id = Number(req.params.posting_id);
 
@@ -133,6 +133,14 @@ app.patch("/updatePost/:user_id&:posting_id", async (req, res) => {
     WHERE u.id = ${user_id} AND p.id = ${posting_id};`
   );
   res.status(201).json({ data: updated[0] });
+});
+
+app.delete("/deletePost/:postingId", async (req, res) => {
+  const postingId = Number(req.params.postingId);
+  await appDataSource.manager.query(
+    `DELETE FROM posts WHERE id = ${postingId}`
+  );
+  res.status(201).json({ message: "postingDeleted" });
 });
 
 const start = async () => {
