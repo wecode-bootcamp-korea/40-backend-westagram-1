@@ -35,7 +35,7 @@ app.get("/ping", (req, res) => {
   res.status(200).json({ message: "pong" });
 });
 
-app.post("/signUp", async (req, res, next) => {
+app.post("/signUp", async (req, res) => {
   const { name, email, profile_image, password } = req.body;
 
   await appDataSource.query(
@@ -52,7 +52,7 @@ app.post("/signUp", async (req, res, next) => {
   res.status(201).json({ message: "userCreated" });
 });
 
-app.post("/post", async (req, res, next) => {
+app.post("/post", async (req, res) => {
   const { title, content, user_id } = req.body;
 
   await appDataSource.query(
@@ -69,9 +69,20 @@ app.post("/post", async (req, res, next) => {
 });
 
 app.get("/lookUpPosts", async (req, res) => {
-  await appDataSource.query(`SELECT * FROM posts`, (err, rows) => {
-    res.status(200).json({ data: rows });
-  });
+  await appDataSource.query(
+    `SELECT 
+    u.id AS userId, 
+    u.profile_image AS userProfileImage,
+    p.id AS postingId,
+    p.postingImageUrl AS postingImageUrl,
+    p.content AS postingContent
+    FROM posts p
+    INNER JOIN users AS u
+    ON u.id = p.user_id;`,
+    (err, rows) => {
+      res.status(200).json({ data: rows });
+    }
+  );
 });
 
 const start = async () => {
