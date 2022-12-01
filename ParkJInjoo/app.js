@@ -6,6 +6,8 @@ const cors = require("cors");
 const morgan = require("morgan");
 const { DataSource } = require("typeorm");
 
+const bcrypt = require("bcrypt");
+
 app = express();
 
 app.use(express.json());
@@ -25,8 +27,14 @@ database.initialize().then(() => {
   console.log("Data Source has been initialized!");
 });
 
+const makeHash = async (password, saltRounds) => {
+  return await bcrypt.hash(password, saltRounds);
+};
+
+//유저의 회원가입 bcrypt와 함께!!!
 app.post("/users", async (req, res) => {
   const { name, email, profile_image, password } = req.body;
+  const hashedPassword = await makeHash(password, 12);
 
   await database.query(
     `INSERT INTO users (
@@ -36,7 +44,7 @@ app.post("/users", async (req, res) => {
       password
     ) VALUES (?, ?, ?, ?);
     `,
-    [name, email, profile_image, password]
+    [name, email, profile_image, hashedPassword]
   );
   res.status(201).json({ message: "userCreated" });
 });
