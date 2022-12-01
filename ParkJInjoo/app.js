@@ -1,5 +1,3 @@
-const http = require("http");
-
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -33,7 +31,7 @@ const makeHash = async (password, saltRounds) => {
 
 //유저의 회원가입 bcrypt와 함께!!!
 app.post("/users", async (req, res) => {
-  const { name, email, profile_image, password } = req.body;
+  const { name, email, profileImage, password } = req.body;
   const hashedPassword = await makeHash(password, 12);
 
   await database.query(
@@ -44,13 +42,13 @@ app.post("/users", async (req, res) => {
       password
     ) VALUES (?, ?, ?, ?);
     `,
-    [name, email, profile_image, hashedPassword]
+    [name, email, profileImage, hashedPassword]
   );
   res.status(201).json({ message: "userCreated" });
 });
 
 app.post("/posts", async (req, res) => {
-  const { title, posting_content, posting_image, user_id } = req.body;
+  const { title, postingContent, postingImage, userId } = req.body;
 
   await database.query(
     `INSERT INTO posts(
@@ -60,7 +58,7 @@ app.post("/posts", async (req, res) => {
       user_id
     ) VALUES (?,?,?,?);
     `,
-    [(title, posting_content, posting_image, user_id)]
+    [(title, postingContent, postingImage, userId)]
   );
   res.status(201).json({ message: "postCreated" });
 });
@@ -84,17 +82,18 @@ app.get("/posts/:userId", async (req, res) => {
 
   const userPost = await database.query(
     `SELECT 
-        u.id as userId,
-        u.profile_image as userProfileImage, 
-             JSON_ARRAYAGG(
-               JSON_OBJECT(
-                   "postingID", p.id,
-                   "postingContent", p.posting_content,
-                   "postingImageUrl", p.posting_image
-                )
-              ) as posting FROM posts p
-                INNER JOIN users u ON u.id=?
-                GROUP BY u.id`,
+      u.id as userId,
+      u.profile_image as userProfileImage, 
+      JSON_ARRAYAGG(
+        JSON_OBJECT(
+          "postingID", p.id,
+          "postingContent", p.posting_content,
+          "postingImageUrl", p.posting_image
+        )
+      ) as posting
+    FROM posts p
+    INNER JOIN users u ON u.id=?
+    GROUP BY u.id`,
     [userId]
   );
   res.status(200).json(userPost);
@@ -141,11 +140,10 @@ app.post("/likes", async (req, res) => {
   res.status(201).json({ message: "likeCreated" });
 });
 
-const server = http.createServer(app);
 const PORT = process.env.PORT;
 
 const start = async () => {
-  server.listen(PORT, () => console.log(`server is listening on ${PORT}`));
+  app.listen(PORT, () => console.log(`server is listening on ${PORT}`));
 };
 
 start();
