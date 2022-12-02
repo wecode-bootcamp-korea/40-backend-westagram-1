@@ -22,7 +22,7 @@ const database = new DataSource({
 });
 
 database.initialize().then(() => {
-  console.log("Data Source has been initialized!");
+  console.log("Data Source has been initialized!!");
 });
 
 const makeHash = async (password, saltRounds) => {
