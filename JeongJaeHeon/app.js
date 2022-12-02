@@ -55,15 +55,16 @@ app.post('/users', async (req, res, next) => {
 });
 
 app.get('/login', async(req, res) => {
-    const { userEmail, userPassword} = req.body
+    const { userEmail, userPassword } = req.body
 
     const user = 
         await mysqlDataSource.query(
             `SELECT
                 u.id,
                 u.name,
-                u.email.
-                u.password
+                u.email,
+                u.password,
+                u.profile_image
               FROM users u 
             WHERE u.email=?`, [userEmail]
         )
@@ -73,7 +74,7 @@ app.get('/login', async(req, res) => {
             if(match === true) {
                 const payLoad = { userEmail : userEmail }
                 const secretKey = process.env.JWT_TOKEN_SECRET_KEY
-                const jwtToken = jwt.sign(payLoad, secretKey, {algorithm:"HS256", expiresIn:"7d"})
+                const jwtToken = jwt.sign(payLoad, secretKey, process.env.JWT_ALGORITHM)
 
                 res.status(200).json({ accsessToken : jwtToken })
             } else {
@@ -85,11 +86,13 @@ const validateToken = async(req, res, next) => {
     const token = req.headers.authorization
     const decoded = jwt.verify(token, process.env.JWT_TOKEN_SECRET_KEY)
     if(!true) {
-        req.user = decoded
-        next()
-    } else {
-        res.status(404).json({ message : "Invalid Access Token" })
+        res.status(400).json({ message : "REQUIRED_LOGIN"})
+    } if(!decoded) {
+        res.status(404).json({ message : "INVALIDE_USER" })
     }
+    
+    req.user = decoded
+    next()
 }
 
 app.post('/posts', validateToken, async(req, res) => {
