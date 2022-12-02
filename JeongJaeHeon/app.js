@@ -55,18 +55,23 @@ app.post('/users', async (req, res, next) => {
 });
 
 app.get('/login', async(req, res) => {
-    const { userId, userPassword} = req.body
+    const { userEmail, userPassword} = req.body
 
-    const hashedPassword = 
+    const user = 
         await mysqlDataSource.query(
-            `SELECT u.password
-                FROM users u WHERE u.id=?`, [userId]
+            `SELECT
+                u.id,
+                u.name,
+                u.email.
+                u.password
+              FROM users u 
+            WHERE u.email=?`, [userEmail]
         )
-    const hash = hashedPassword[0].password
+    const hashedPassword = user[0].password
 
-    const match = await bcrypt.compare(userPassword, hash)
+    const match = await bcrypt.compare(userPassword, hashedPassword)
             if(match === true) {
-                const payLoad = { userId : userId }
+                const payLoad = { userEmail : userEmail }
                 const secretKey = process.env.JWT_TOKEN_SECRET_KEY
                 const jwtToken = jwt.sign(payLoad, secretKey, {algorithm:"HS256", expiresIn:"7d"})
 
@@ -76,7 +81,7 @@ app.get('/login', async(req, res) => {
             }
 })
 
-const validateToken = async(req, res) => {
+const validateToken = async(req, res, next) => {
     const token = req.headers.authorization
     const decoded = jwt.verify(token, process.env.JWT_TOKEN_SECRET_KEY)
     if(!true) {
@@ -88,8 +93,8 @@ const validateToken = async(req, res) => {
 }
 
 app.post('/posts', validateToken, async(req, res) => {
-    const { userId } =req.user
-    const { title, content, image_url } = req.body
+    const { userEmail } =req.user
+    const { title, content, imageUrl } = req.body
     
     const posts = 
         await mysqlDataSource.query(
@@ -98,7 +103,7 @@ app.post('/posts', validateToken, async(req, res) => {
                 content,
                 image_url
               ) VALUES (?, ?, ?)
-            `, [ title, content, image_url ]    
+            `, [ title, content, imageUrl ]    
         )
     res.status(201).json({ message : "postCreated" })
 })
