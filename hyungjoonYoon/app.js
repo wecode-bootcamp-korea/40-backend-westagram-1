@@ -109,9 +109,9 @@ app.get("/lookUpPostsByUser/:inputId", async (req, res) => {
   res.status(200).json({ data: user[0] });
 });
 
-app.patch("/updatePost/:user_id/:posting_id", async (req, res) => {
-  const userId = Number(req.params.user_id);
-  const postingId = Number(req.params.posting_id);
+app.patch("/updatePost/:userId/:postingId", async (req, res) => {
+  const userId = Number(req.params.userId);
+  const postingId = Number(req.params.postingId);
 
   const { content } = req.body;
 
