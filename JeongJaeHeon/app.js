@@ -115,16 +115,10 @@ app.post('/posts', async(req, res, next) => {
           user_id
         ) VALUES (?, ?, ?, ?);
         `,
-<<<<<<< HEAD
           [userName, userEmail, hashedPassword, profileImage]
     ) 
     res.status(201).json({ message : "userCreated"})
 });
-=======
-        [ title, content, imageUrl, userId ]);
-
-    res.status(201).json({message : 'postCreated'})
-})
 
 app.patch('/posts/:postId', async(req, res) => {
     const { postId } = req.params
@@ -162,7 +156,6 @@ app.delete('/posts/:postId', async(req, res) => {
     )
     res.status(204).json({message : 'posting Deleted'})
 })
->>>>>>> main
 
 app.get('/login', async(req, res) => {
     const { userEmail, userPassword } = req.body
