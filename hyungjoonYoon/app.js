@@ -93,8 +93,9 @@ app.get("/post/:inputId", async (req, res) => {
       id AS userId,
       profile_image AS userProfileImage
     FROM users
-    WHERE users.id = ${userId};
-    `
+    WHERE users.id = ?;
+    `,
+    [userId]
   );
   const userpost = await appDataSource.manager.query(
     `
@@ -103,7 +104,9 @@ app.get("/post/:inputId", async (req, res) => {
       title as postingImageUrl,
       content as postingContent
     FROM posts
-    WHERE user_id = ${userId};`
+    WHERE user_id = ?;
+    `,
+    [userId]
   );
   user[0].postings = userpost;
   res.status(200).json({ data: user[0] });
@@ -135,8 +138,9 @@ app.patch("/post/:userId/:postingId", async (req, res) => {
       p.content AS postingContent
     FROM posts AS p
     INNER JOIN users AS u ON u.id = p.user_id
-    WHERE u.id = ${userId} AND p.id = ${postingId};
-    `
+    WHERE u.id = ? AND p.id = ?;
+    `,
+    [userId, postingId]
   );
   res.status(201).json({ data: updated[0] });
 });
@@ -144,7 +148,10 @@ app.patch("/post/:userId/:postingId", async (req, res) => {
 app.delete("/post/:postingId", async (req, res) => {
   const postingId = Number(req.params.postingId);
   await appDataSource.manager.query(
-    `DELETE FROM posts WHERE id = ${postingId}`
+    `
+    DELETE FROM posts WHERE id = ?
+    `,
+    [postingId]
   );
   res.status(201).json({ message: "postingDeleted" });
 });
