@@ -36,7 +36,7 @@ app.get("/ping", (req, res) => {
 });
 
 app.post("/signUp", async (req, res) => {
-  const { name, email, profile_image, password } = req.body;
+  const { name, email, profileImage, password } = req.body;
 
   await appDataSource.query(
     `INSERT INTO users(
@@ -47,13 +47,13 @@ app.post("/signUp", async (req, res) => {
     ) 
     VALUES (?,?,?,?);
     `,
-    [name, email, profile_image, password]
+    [name, email, profileImage, password]
   );
   res.status(201).json({ message: "userCreated" });
 });
 
 app.post("/post", async (req, res) => {
-  const { title, content, user_id } = req.body;
+  const { title, content, userId } = req.body;
   await appDataSource.query(
     `INSERT INTO posts(
       title,
@@ -62,7 +62,7 @@ app.post("/post", async (req, res) => {
     ) 
     VALUES (?,?,?);
     `,
-    [title, content, user_id]
+    [title, content, userId]
   );
   res.status(201).json({ message: "postCreated" });
 });
@@ -106,8 +106,8 @@ app.get("/lookUpPostsByUser/:inputId", async (req, res) => {
 });
 
 app.patch("/updatePost/:user_id/:posting_id", async (req, res) => {
-  const user_id = Number(req.params.user_id);
-  const posting_id = Number(req.params.posting_id);
+  const userId = Number(req.params.user_id);
+  const postingId = Number(req.params.posting_id);
 
   const { content } = req.body;
 
@@ -117,7 +117,7 @@ app.patch("/updatePost/:user_id/:posting_id", async (req, res) => {
 		 content = ?
 		 WHERE id = ?;
 		`,
-    [content, posting_id]
+    [content, postingId]
   );
 
   const updated = await appDataSource.manager.query(
@@ -130,7 +130,7 @@ app.patch("/updatePost/:user_id/:posting_id", async (req, res) => {
     FROM posts AS p
     INNER JOIN users AS u
     ON u.id = p.user_id
-    WHERE u.id = ${user_id} AND p.id = ${posting_id};`
+    WHERE u.id = ${userId} AND p.id = ${postingId};`
   );
   res.status(201).json({ data: updated[0] });
 });
