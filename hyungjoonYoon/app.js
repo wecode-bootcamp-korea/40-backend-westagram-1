@@ -67,7 +67,7 @@ app.post("/post", async (req, res) => {
   res.status(201).json({ message: "postCreated" });
 });
 
-app.get("/lookUpPosts", async (req, res) => {
+app.get("/post", async (req, res) => {
   await appDataSource.query(
     `
     SELECT 
@@ -85,7 +85,7 @@ app.get("/lookUpPosts", async (req, res) => {
   );
 });
 
-app.get("/lookUpPostsByUser/:inputId", async (req, res) => {
+app.get("/post/:inputId", async (req, res) => {
   const userId = req.params.inputId;
   const user = await appDataSource.manager.query(
     `
@@ -109,7 +109,7 @@ app.get("/lookUpPostsByUser/:inputId", async (req, res) => {
   res.status(200).json({ data: user[0] });
 });
 
-app.patch("/updatePost/:userId/:postingId", async (req, res) => {
+app.patch("/post/:userId/:postingId", async (req, res) => {
   const userId = Number(req.params.userId);
   const postingId = Number(req.params.postingId);
 
@@ -141,7 +141,7 @@ app.patch("/updatePost/:userId/:postingId", async (req, res) => {
   res.status(201).json({ data: updated[0] });
 });
 
-app.delete("/deletePost/:postingId", async (req, res) => {
+app.delete("/post/:postingId", async (req, res) => {
   const postingId = Number(req.params.postingId);
   await appDataSource.manager.query(
     `DELETE FROM posts WHERE id = ${postingId}`
@@ -149,7 +149,7 @@ app.delete("/deletePost/:postingId", async (req, res) => {
   res.status(201).json({ message: "postingDeleted" });
 });
 
-app.post("/likeAPost", async (req, res) => {
+app.post("/like", async (req, res) => {
   const { postingId, userId } = req.body;
   await appDataSource.manager.query(
     `
