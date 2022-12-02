@@ -9,6 +9,8 @@ const morgan = require('morgan');
 const { DataSource } = require('typeorm')
 
 const app = express();
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const mysqlDataSource = new DataSource({
     type: process.env.TYPEORM_CONNECTION,
@@ -86,6 +88,9 @@ app.post('/likes', async(req, res) => {
 app.post('/users', async (req, res) => {
     const { userName, userEmail, userPassword, userImage } = req.body
 
+    const SALT_ROUNDS=10;
+    const hashedPassword = await bcrypt.hash(userPassword, SALT_ROUNDS)
+
     await mysqlDataSource.query(
         `INSERT INTO users (
             name,
@@ -110,10 +115,10 @@ app.post('/posts', async(req, res, next) => {
           user_id
         ) VALUES (?, ?, ?, ?);
         `,
-        [ title, content, imageUrl, userId ]);
-
-    res.status(201).json({message : 'postCreated'})
-})
+          [userName, userEmail, hashedPassword, profileImage]
+    ) 
+    res.status(201).json({ message : "userCreated"})
+});
 
 app.patch('/posts/:postId', async(req, res) => {
     const { postId } = req.params
@@ -150,6 +155,63 @@ app.delete('/posts/:postId', async(req, res) => {
         `, [ postId ]
     )
     res.status(204).json({message : 'posting Deleted'})
+})
+
+app.get('/login', async(req, res) => {
+    const { userEmail, userPassword } = req.body
+
+    const user = 
+        await mysqlDataSource.query(
+            `SELECT
+                u.id,
+                u.name,
+                u.email,
+                u.password,
+                u.profile_image
+              FROM users u 
+            WHERE u.email=?`, [userEmail]
+        )
+    const hashedPassword = user[0].password
+
+    const match = await bcrypt.compare(userPassword, hashedPassword)
+            if(match === true) {
+                const payLoad = { userEmail : userEmail }
+                const secretKey = process.env.JWT_TOKEN_SECRET_KEY
+                const jwtToken = jwt.sign(payLoad, secretKey, process.env.JWT_ALGORITHM)
+
+                res.status(200).json({ accsessToken : jwtToken })
+            } else {
+                res.status(401).json({ message : "Invalid User" })
+            }
+})
+
+const validateToken = async(req, res, next) => {
+    const token = req.headers.authorization
+    const decoded = jwt.verify(token, process.env.JWT_TOKEN_SECRET_KEY)
+    if(!true) {
+        res.status(400).json({ message : "REQUIRED_LOGIN"})
+    } if(!decoded) {
+        res.status(404).json({ message : "INVALIDE_USER" })
+    }
+    
+    req.user = decoded
+    next()
+}
+
+app.post('/posts', validateToken, async(req, res) => {
+    const { userEmail } =req.user
+    const { title, content, imageUrl } = req.body
+    
+    const posts = 
+        await mysqlDataSource.query(
+            `INSERT INTO posts (
+                title,
+                content,
+                image_url
+              ) VALUES (?, ?, ?)
+            `, [ title, content, imageUrl ]    
+        )
+    res.status(201).json({ message : "postCreated" })
 })
 
 const PORT = process.env.PORT;
