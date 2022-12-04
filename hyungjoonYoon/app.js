@@ -3,6 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const { DataSource } = require("typeorm");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 dotenv.config();
 
@@ -38,6 +40,12 @@ app.get("/ping", (req, res) => {
 app.post("/signUp", async (req, res) => {
   const { name, email, profileImage, password } = req.body;
 
+  const makeHash = async (password, saltRounds) => {
+    return await bcrypt.hash(password, saltRounds); // (4)
+  };
+
+  const hashedPassword = await makeHash(password, 12);
+
   await appDataSource.query(
     `
     INSERT INTO users(
@@ -47,7 +55,7 @@ app.post("/signUp", async (req, res) => {
       password
     ) VALUES (?,?,?,?);
     `,
-    [name, email, profileImage, password]
+    [name, email, profileImage, hashedPassword]
   );
   res.status(201).json({ message: "userCreated" });
 });
