@@ -60,6 +60,37 @@ app.post("/signUp", async (req, res) => {
   res.status(201).json({ message: "userCreated" });
 });
 
+app.post("/signIn", async (req, res) => {
+  const { email, password } = req.body;
+  const userInfo = await appDataSource.manager.query(
+    `
+    SELECT 
+      email, 
+      password
+    FROM users
+    WHERE email = ?;
+    `,
+    [email]
+  );
+  const hashedPassword = userInfo[0].password;
+
+  const checkHash = async (password, hashedPassword) => {
+    return await bcrypt.compare(password, hashedPassword);
+  };
+
+  const result = await checkHash(password, hashedPassword);
+
+  if (result) {
+    const payLoad = { exp: "1d" };
+    const secretKey = process.env.SECRETE_KEY;
+    const jwtToken = jwt.sign(payLoad, secretKey);
+    console.log(jwtToken);
+    res.status(201).json({ accessToken: jwtToken });
+  } else {
+    res.status(400).json({ messsage: "Invalid user" });
+  }
+});
+
 app.post("/post", async (req, res) => {
   const { title, content, userId } = req.body;
   await appDataSource.query(
